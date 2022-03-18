@@ -1,5 +1,17 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@service_deps//:requirements.bzl", "requirement")
+
 py_binary(
     name = "service",
     srcs = glob(["bookstore/*.py"]),
     main = "bookstore.py",
+    deps = [
+        requirement("flask"),
+    ],
+)
+
+py_binary(
+    name = "debug",
+    srcs = glob(["bookstore/*.py"]),
+    main = "debug.py",
 )
