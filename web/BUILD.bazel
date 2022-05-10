@@ -1,0 +1,45 @@
+load("@npm//@angular-devkit/architect-cli:index.bzl", "architect", "architect_test")
+
+# These dependencies are needed for any ng command
+filegroup(
+    name = "common_deps",
+    srcs = [
+        "angular.json",
+        "tsconfig.json",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+APPLICATION_DEPS = [
+    ":common_deps",
+    "@npm//@angular/cli",
+    "@npm//@angular/core",
+    "@npm//@angular/router",
+    "@npm//@angular/platform-browser-dynamic",
+    "@npm//@angular-devkit/build-angular",
+    "@npm//rxjs",
+    "@npm//zone.js",
+    "@npm//tslib",
+    "@npm//typescript",
+]
+
+architect(
+    name = "build",
+    args = [
+        "frontend:build",
+        "--outputPath=$(@D)",
+    ],
+    configuration_env_vars = ["NG_BUILD_CACHE"],
+    data = glob(
+        [
+            "src/**/*",
+        ],
+        exclude = [
+            "src/**/*.spec.ts",
+            "src/test.ts",
+        ],
+    ) + APPLICATION_DEPS + [
+        "tsconfig.app.json",
+    ],
+    output_dir = True,
+)

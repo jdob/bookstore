@@ -1,4 +1,5 @@
-# Generic Bazel rules
+# -- Generic Bazel Rules -----------------------------------------------------
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # -- Python ------------------------------------------------------------------
@@ -56,4 +57,37 @@ maven_install(
     'https://repo1.maven.org/maven2',
   ],
   fetch_sources = True,
+)
+
+# -- JavaScript --------------------------------------------------------------
+
+# -- Rules --
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "e328cb2c9401be495fa7d79c306f5ee3040e8a03b2ebb79b022e15ca03770096",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.4.2/rules_nodejs-5.4.2.tar.gz"],
+)
+
+# -- Dependencies --
+
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
+
+load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
+
+yarn_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "npm",
+    data = ["//web:patches/@angular-devkit+architect-cli+0.1102.2.patch"],
+    package_json = "//web:package.json",
+    yarn_lock = "//web:yarn.lock",
+)
+
+load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "node16",
+    node_version = "16.9.0",
 )
