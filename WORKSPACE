@@ -1,4 +1,8 @@
-# -- Generic Bazel Rules -----------------------------------------------------
+# -- Workspace ---------------------------------------------------------------
+
+workspace(
+    name = "bookstore",
+)
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -65,29 +69,28 @@ maven_install(
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "e328cb2c9401be495fa7d79c306f5ee3040e8a03b2ebb79b022e15ca03770096",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.4.2/rules_nodejs-5.4.2.tar.gz"],
+    sha256 = "d63ecec7192394f5cc4ad95a115f8a6c9de55c60d56c1f08da79c306355e4654",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.1/rules_nodejs-4.6.1.tar.gz"],
 )
 
-# -- Dependencies --
+# -- Node.js :: Reviews --
 
-load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+# Load the node_repositories function
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
-build_bazel_rules_nodejs_dependencies()
+# This rule installs nodejs, npm, and yarn, but does NOT install
+# your npm dependencies into your node_modules folder.
+# You must still run the package manager to do this.
+node_repositories(
+    package_json = ["//reviews:package.json"],
+    node_version = "16.13.2", # specific Node.js version
+)
 
-load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
-
-yarn_install(
-    # Name this npm so that Bazel Label references look like @npm//package
+# The npm_install rule runs npm anytime the package.json or package-lock.json file changes.
+# It also extracts any Bazel rules distributed in an npm package.
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+npm_install(
     name = "npm",
-    data = ["//web:patches/@angular-devkit+architect-cli+0.1102.2.patch"],
-    package_json = "//web:package.json",
-    yarn_lock = "//web:yarn.lock",
-)
-
-load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
-
-nodejs_register_toolchains(
-    name = "node16",
-    node_version = "16.9.0",
+    package_json = "//reviews:package.json",
+    package_lock_json = "//reviews:package-lock.json",
 )
